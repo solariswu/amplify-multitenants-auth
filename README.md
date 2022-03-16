@@ -1,0 +1,1 @@
+# amplify-multitenants-auth
