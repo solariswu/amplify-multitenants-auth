@@ -16,7 +16,7 @@ Amplify.configure({
       domain: "multitenants.auth.us-east-1.amazoncognito.com",
       scope: ['profile', 'openid', 'aws.cognito.signin.user.admin'],
       redirectSignIn: "https://multitenants.aws-amplify.dev/landing",
-      redirectSignOut: "https://multitenants.aws-amplify.dev/logout/",
+      redirectSignOut: "https://multitenants.aws-amplify.dev/logout",
       responseType: "code", // or 'token', note that REFRESH token will only be generated when the responseType is code
     },
   },

@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import Auth from "@aws-amplify/auth";
+import { Auth } from "aws-amplify";
 
 class Landing extends Component {
   logout = () => {
