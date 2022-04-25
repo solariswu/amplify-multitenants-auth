@@ -33,14 +33,14 @@ function decodeToken(token) {
 }
 
 function App() {
-    const [idToken, setIdToken] = useState(null);
-    const [accessToken, setAccessToken] = useState(null);
+    // const [idToken, setIdToken] = useState(null);
+    // const [accessToken, setAccessToken] = useState(null);
     const [user, setUser] = useState(null);
     const [tenants, setTenants] = useState(null);
 
     const updateStats = async (data) => {
-        setIdToken(data.signInUserSession.idToken.jwtToken);
-        setAccessToken(data.signInUserSession.accessToken.jwtToken);
+        // setIdToken(data.signInUserSession.idToken.jwtToken);
+        // setAccessToken(data.signInUserSession.accessToken.jwtToken);
         setUser(decodeToken(data.signInUserSession.idToken.jwtToken));
 
         const tenantResponse = await axios.get(Endpoint + '/tenants', {
