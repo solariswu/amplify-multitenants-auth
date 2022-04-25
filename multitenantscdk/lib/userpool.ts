@@ -11,7 +11,7 @@ import {
 export const addHostedUIAppClient = (scope: Construct, userpool: UserPool) => {
     return new UserPoolClient(scope, 'hostedUIClient', {
         userPool: userpool,
-        generateSecret: true,
+        generateSecret: false,
         authFlows: {
             userSrp: true
         },
@@ -24,8 +24,8 @@ export const addHostedUIAppClient = (scope: Construct, userpool: UserPool) => {
                 OAuthScope.PROFILE,
                 OAuthScope.COGNITO_ADMIN
             ],
-            callbackUrls: ['https://multitenants.aws-amplify.dev/landing'],
-            logoutUrls: ['https://multitenants.aws-amplify.dev/logout']
+            callbackUrls: ['https://multitenants.aws-amplify.dev', 'http://localhost:3000'],
+            logoutUrls: ['https://multitenants.aws-amplify.dev',  'http://localhost:3000']
         },
         userPoolClientName: 'hostedUIClient'
     });
