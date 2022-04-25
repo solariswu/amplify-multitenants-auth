@@ -98,13 +98,15 @@ function App() {
                     <pre>Auth.updateUserAttribute()</pre>
                 </div>
             )}
-            <p> Tenants</p>
-            {tenants && tenants.length ? (
-                <ol>
-                    {tenants.map((tenant) => (
-                        <li key={tenant.GroupName}>{tenant.GroupName}</li>
-                    ))}
-                </ol>
+            {user && tenants && tenants.length ? (
+                <div>
+                    <p> Tenants</p>
+                    <ol>
+                        {tenants.map((tenant) => (
+                            <li key={tenant.GroupName}>{tenant.GroupName}</li>
+                        ))}
+                    </ol>
+                </div>
             ) : (
                 <pre>'No Tenants exists yet!'</pre>
             )}
