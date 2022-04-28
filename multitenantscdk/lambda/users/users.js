@@ -13,14 +13,38 @@ const client = new CognitoIdentityServiceProvider({
     region
 });
 
+const headers = {
+    'Access-Control-Allow-Headers':
+        'Content-Type,X-Amz-Date,Authorization,X-Api-Key',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'OPTIONS,POST,GET,DELETE'
+};
+
+const response = (statusCode = 200, body) => {
+    return {
+        statusCode,
+        headers,
+        body
+    };
+};
+
+const responseErrorInfo = (err) => {
+    return {
+        statusCode: err.statusCode,
+        header,
+        body: JSON.stringify({message: err.code})
+    };
+};
+
 const PERMISSION_DENY = {
     statusCode: 403,
+    headers,
     body: JSON.stringify({message: 'Permission Deny'})
 };
 
 const INVAID_PARAMS = {
     statusCode: 400,
-    headers: {},
+    headers,
     body: JSON.stringify({message: 'Invalid Input Parameters'})
 };
 
@@ -85,18 +109,11 @@ const getAllUsers = async (tenantId = null) => {
         } catch (err) {
             console.error('List Users failed with:', err);
             console.error('RequestId: ' + err.requestId);
-            return {
-                statusCode: err.statusCode,
-                body: JSON.stringify({message: err.code})
-            };
+            return responseErrorInfo(err);
         }
     } while (listUsersParams.NextToken || listUsersParams.PaginationToken);
-    const body = JSON.stringify({Users: users});
 
-    return {
-        statusCode: 200,
-        body
-    };
+    return response(200, JSON.stringify({Users: users}));
 };
 
 const getUser = async (Username, requesterTenantId = null) => {
@@ -137,18 +154,10 @@ const getUser = async (Username, requesterTenantId = null) => {
     } catch (err) {
         console.error('Get User failed with:', err);
         console.error('RequestId: ' + err.requestId);
-        return {
-            statusCode: err.statusCode,
-            body: JSON.stringify({message: err.code})
-        };
+        return responseErrorInfo(err);
     }
 
-    const body = JSON.stringify({Users: users});
-
-    return {
-        statusCode: 200,
-        body
-    };
+    return response(200, JSON.stringify({Users: users}));
 };
 
 const createUser = async (
@@ -164,7 +173,7 @@ const createUser = async (
 
     // Benefit Admin create user, needs tenant id info
     if (!payload.tenantid && !tenantId) {
-        return {statusCode: 400, body: 'Need tenant id in payload'};
+        return response(400, 'Need tenant id in payload');
     }
 
     // requester tenant id equals
@@ -200,10 +209,7 @@ const createUser = async (
     } catch (err) {
         console.log('adminCreateUser error:', err);
         console.log('RequestId: ' + this.requestId);
-        return {
-            statusCode: err.statusCode,
-            body: JSON.stringify({message: err.code})
-        };
+        return responseErrorInfo(err);
     }
 
     try {
@@ -226,12 +232,12 @@ const createUser = async (
     } catch (err) {
         console.log('Add user to tenant error:', err);
         console.log('RequestId: ' + this.requestId);
-        return {
-            statusCode: err.statusCode,
-            body: JSON.stringify({
+        return response(
+            err.statusCode,
+            JSON.stringify({
                 message: `${message} but got ${err.code} on add user to tenant`
             })
-        };
+        );
     }
 
     //add tenant if required
@@ -257,12 +263,12 @@ const createUser = async (
         } catch (err) {
             console.log('Assign tenant admin role to user error:', err);
             console.log('RequestId: ' + this.requestId);
-            return {
-                statusCode: err.statusCode,
-                body: JSON.stringify({
+            return response(
+                err.statusCode,
+                JSON.stringify({
                     message: `${message} but got ${err.code} on assigning user to tenant admin`
                 })
-            };
+            );
         }
     }
 
@@ -289,19 +295,16 @@ const createUser = async (
         } catch (err) {
             console.log('Assign trial role to user error:', err);
             console.log('RequestId: ' + this.requestId);
-            return {
-                statusCode: err.statusCode,
-                body: JSON.stringify({
+            return response(
+                err.statusCode,
+                JSON.stringify({
                     message: `${message} but got ${err.code} on assigning user to trial`
                 })
-            };
+            );
         }
     }
 
-    return {
-        statusCode: 200,
-        body: JSON.stringify({message: `${message}`})
-    };
+    return response(200, JSON.stringify({message: `${message}`}));
 };
 
 const getUserGroups = async (Username) => {
@@ -334,10 +337,7 @@ const deleteUser = async (Username, tenantId = null) => {
                 'Request Id: ',
                 err.requestId
             );
-            return {
-                statusCode: err.statusCode,
-                body: JSON.stringify({message: err.code})
-            };
+            return responseErrorInfo(err);
         }
     }
 
@@ -348,18 +348,14 @@ const deleteUser = async (Username, tenantId = null) => {
             Username
         };
         await client.adminDeleteUser(adminDeleteUserParams).promise();
-        const body = JSON.stringify({message: `user - ${Username} deleted`});
-        return {
-            statusCode: 200,
-            body
-        };
+        return response(
+            200,
+            JSON.stringify({message: `user - ${Username} deleted`})
+        );
     } catch (err) {
         console.error(`delete user - ${Username} failed with:`, err);
         console.error('RequestId: ' + err.requestId);
-        return {
-            statusCode: err.statusCode,
-            body: JSON.stringify({message: err.code})
-        };
+        return responseErrorInfo(err);
     }
 };
 
@@ -368,12 +364,12 @@ exports.main = async (event) => {
     console.log('Received event:', JSON.stringify(event, null, 2));
 
     if (!event.path.startsWith(USERSAPI_PATH)) {
-        return {
-            statusCode: 400,
-            body: JSON.stringify({
+        return response(
+            400,
+            JSON.stringify({
                 message: `Users API Error, invalid path - ${event.path}`
             })
-        };
+        );
     }
 
     const method = event.httpMethod;
@@ -411,12 +407,12 @@ exports.main = async (event) => {
             if (requesterTenantId) {
                 return getAllUsers(requesterTenantId);
             }
-            return {
-                statusCode: 400,
-                body: JSON.stringify({
+            return response(
+                400,
+                JSON.stringify({
                     message: "Didn't find tenantId on an tenant admin."
                 })
-            };
+            );
         }
         return PERMISSION_DENY;
     }

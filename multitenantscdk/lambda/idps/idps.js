@@ -23,15 +23,31 @@ const client = new CognitoIdentityServiceProvider({
     region
 });
 
+const headers = {
+    'Access-Control-Allow-Headers':
+        'Content-Type,X-Amz-Date,Authorization,X-Api-Key',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'OPTIONS,POST,GET,DELETE'
+};
+
 const PERMISSION_DENY = {
     statusCode: 403,
+    headers,
     body: JSON.stringify({message: 'Permission Deny'})
 };
 
 const INVAID_PARAMS = {
     statusCode: 400,
-    headers: {},
+    headers,
     body: JSON.stringify({message: 'Invalid Input Parameters'})
+};
+
+const response = (statusCode = 200, body = '') => {
+    return {
+        statusCode,
+        headers,
+        body
+    };
 };
 
 const isInputValid = (payload) => {
@@ -166,17 +182,11 @@ const createIdp = async (tenantId, idpname, input) => {
         body = JSON.stringify({
             message: `IdP ${tenantId}-${idpname} created and idp enalbed on appclient - appClientParams.ClientName (${ClientId})`
         });
-        return {
-            statusCode: 200,
-            body
-        };
+        return response(200, body);
     } catch (err) {
         console.log('Create new IdP error:', err);
         console.log('RequestId: ' + this.requestId);
-        return {
-            statusCode: err.statusCode,
-            body: JSON.stringify({message: err.code})
-        };
+        return response(err.statusCode, JSON.stringify({message: err.code}));
     }
 };
 
@@ -192,17 +202,11 @@ const deleteIdp = async (tenantId, idpName) => {
             .deleteIdentityProvider(deleteIdentityProviderParams)
             .promise();
 
-        return {
-            statusCode: 200,
-            body: `IDP: ${tenantId}-${idpName} deleted`
-        };
+        return response(200, `IDP: ${tenantId}-${idpName} deleted`);
     } catch (err) {
         console.error('Delete identity provider failed with:', err);
         console.error('RequestId: ' + err.requestId);
-        return {
-            statusCode: err.statusCode,
-            body: JSON.stringify({message: err.code})
-        };
+        return response(err.statusCode, JSON.stringify({message: err.code}));
     }
 };
 
@@ -231,18 +235,10 @@ const getIdp = async (tenantId, idpName) => {
     } catch (err) {
         console.error('Get identity provider failed with:', err);
         console.error('RequestId: ' + err.requestId);
-        return {
-            statusCode: err.statusCode,
-            body: JSON.stringify({message: err.code})
-        };
+        return response(err.statusCode, JSON.stringify({message: err.code}));
     }
 
-    const body = JSON.stringify(idps);
-
-    return {
-        statusCode: 200,
-        body
-    };
+    return response(200, JSON.stringify(idps));
 };
 
 const getAllIdps = async () => {
@@ -269,18 +265,11 @@ const getAllIdps = async () => {
         } catch (err) {
             console.error('listIdentityProviders failed with:', err);
             console.error('RequestId: ' + err.requestId);
-            return {
-                statusCode: err.statusCode,
-                body: JSON.stringify({message: err.code})
-            };
+            return response(err.statusCode, JSON.stringify({message: err.code}));
         }
     } while (listIdentityProvidersParams.NextToken);
 
-    const body = JSON.stringify(idps);
-    return {
-        statusCode: 200,
-        body
-    };
+    return response(200, JSON.stringify(idps));
 };
 
 const getIdpsByTenantId = async (tenantId) => {
@@ -303,10 +292,7 @@ const getIdpsByTenantId = async (tenantId) => {
         } catch (err) {
             console.error('listIdentityProviders failed with:', err);
             console.error('RequestId: ' + err.requestId);
-            return {
-                statusCode: err.statusCode,
-                body: JSON.stringify({message: err.code})
-            };
+            return response(err.statusCode, JSON.stringify({message: err.code}));
         }
     } while (listIdentityProvidersParams.NextToken);
 
@@ -315,10 +301,7 @@ const getIdpsByTenantId = async (tenantId) => {
             idp.name.substring(0, idp.name.indexOf('-') === tenantId)
         )
     );
-    return {
-        statusCode: 200,
-        body: JSON.stringify(idps)
-    };
+    return response(200, JSON.stringify(idps));
 };
 
 exports.main = async (event) => {
@@ -326,10 +309,7 @@ exports.main = async (event) => {
 
     console.log('Received event:', JSON.stringify(event, null, 2));
     if (!event.path.startsWith(IDPSAPI_PATH)) {
-        return {
-            statusCode: 400,
-            body: `API idps Error, invalid path - ${event.path}`
-        };
+        return response(400, `API idps Error, invalid path - ${event.path}`);
     }
 
     const method = event.httpMethod;
@@ -361,10 +341,7 @@ exports.main = async (event) => {
             if (requesterTenantId) {
                 return getIdpsByTenantId(requesterTenantId);
             }
-            return {
-                statusCode: 400,
-                body: "Didn't find tenantId on an tenant admin."
-            };
+            return response(400, "Didn't find tenantId on an tenant admin.");
         }
         return PERMISSION_DENY;
     }
@@ -384,12 +361,7 @@ exports.main = async (event) => {
         tenantId = fullIdpName.substring(0, hIdx);
         idpName = fullIdpName.substring(hIdx + 1);
     } else {
-        return {
-            statusCode: 400,
-            body: JSON.stringify({
-                message: 'malformat. idp name format should be aaa-bbb.'
-            })
-        };
+        return response(400, 'IdP Name malformat. Should be aaa-bbb.');
     }
 
     if (

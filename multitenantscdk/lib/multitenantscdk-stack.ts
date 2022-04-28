@@ -1,4 +1,4 @@
-import {Stack, StackProps} from 'aws-cdk-lib';
+import {CfnOutput, Stack, StackProps} from 'aws-cdk-lib';
 import {Construct} from 'constructs';
 import {
     createUserPool,
@@ -63,6 +63,8 @@ export class MultitenantscdkStack extends Stack {
         
         createPostDeploymentLambda (this, userPool, config.adminEmail);
 
+        new CfnOutput(this, 'userPoolId', { value: userPool.userPoolId });
+        new CfnOutput(this, 'userPoolWebClientId', { value: hostedUIClient.userPoolClientId });
         // const identityPool = createIdentityPool(this, userPool, hostedUIClient);
     }
 }
