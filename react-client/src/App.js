@@ -37,6 +37,7 @@ function App() {
     // const [accessToken, setAccessToken] = useState(null);
     const [user, setUser] = useState(null);
     const [tenants, setTenants] = useState(null);
+    const [idps, setIdps] = useState(null);
 
     const updateStats = async (data) => {
         // setIdToken(data.signInUserSession.idToken.jwtToken);
@@ -48,8 +49,16 @@ function App() {
                 Authorization: data.signInUserSession.idToken.jwtToken
             }
         });
-
+        
         setTenants(tenantResponse.data);
+
+        const idpResponse = await axios.get(Endpoint + '/idps', {
+            headers: {
+                Authorization: data.signInUserSession.idToken.jwtToken
+            }
+        });
+
+        setIdps(idpResponse.data.Providers);
     };
 
     useEffect(() => {
@@ -98,7 +107,7 @@ function App() {
                     <pre>Auth.updateUserAttribute()</pre>
                 </div>
             )}
-            {user && tenants && tenants.length ? (
+            {user && tenants && tenants.length && (
                 <div>
                     <p> Tenants</p>
                     <ol>
@@ -107,8 +116,16 @@ function App() {
                         ))}
                     </ol>
                 </div>
-            ) : (
-                <pre>'No Tenants exists yet!'</pre>
+            )}
+            {user && idps && idps.length && (
+                <div>
+                    <p> Idps</p>
+                    <ol>
+                        {idps.map((idp) => (
+                            <li key={idp.ProviderName}>{idp.ProviderName}</li>
+                        ))}
+                    </ol>
+                </div>
             )}
         </div>
     );
