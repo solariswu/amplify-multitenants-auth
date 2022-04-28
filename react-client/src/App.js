@@ -58,7 +58,7 @@ function App() {
             }
         });
 
-        setIdps(idpResponse.data.Providers);
+        setIdps(idpResponse.data);
     };
 
     useEffect(() => {
