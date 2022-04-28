@@ -6,8 +6,8 @@ import {Buffer} from 'buffer';
 Amplify.configure({
     Auth: {
         region: 'us-east-1',
-        userPoolId: 'us-east-1_9zjxahOUG',
-        userPoolWebClientId: '736829q1p78pnj42qkm2tc9p3q',
+        userPoolId: 'us-east-1_fvZgQKdYX',
+        userPoolWebClientId: '1cadat45u0c65mrlc053rded0h',
         oauth: {
             domain: 'multitenants.auth.us-east-1.amazoncognito.com',
             scope: ['profile', 'openid', 'aws.cognito.signin.user.admin'],
@@ -18,7 +18,7 @@ Amplify.configure({
     }
 });
 
-const Endpoint = 'https://d1f37qcmre.execute-api.us-east-1.amazonaws.com/dev';
+const Endpoint = 'https://gkcjj74wj8.execute-api.us-east-1.amazonaws.com/dev';
 
 function decodeToken(token) {
     const tokens = token.split('.');
