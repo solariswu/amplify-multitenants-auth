@@ -1,12 +1,16 @@
 import {Construct} from 'constructs';
-import {Duration} from 'aws-cdk-lib';
 import {
     UserPool,
     UserPoolClient,
     OAuthScope,
     AccountRecovery,
-    Mfa
+    Mfa,
+    UserPoolOperation
 } from 'aws-cdk-lib/aws-cognito';
+import {Policy, PolicyStatement} from 'aws-cdk-lib/aws-iam';
+import {Duration} from 'aws-cdk-lib';
+import { createPostConfirmLambda } from './lambdas';
+import { getBasicLambdaPolicy } from './lambdaIAMPolicy';
 
 export const addHostedUIAppClient = (scope: Construct, userpool: UserPool) => {
     return new UserPoolClient(scope, 'hostedUIClient', {
@@ -24,8 +28,14 @@ export const addHostedUIAppClient = (scope: Construct, userpool: UserPool) => {
                 OAuthScope.PROFILE,
                 OAuthScope.COGNITO_ADMIN
             ],
-            callbackUrls: ['https://multitenants.aws-amplify.dev', 'http://localhost:3000'],
-            logoutUrls: ['https://multitenants.aws-amplify.dev',  'http://localhost:3000']
+            callbackUrls: [
+                'https://multitenants.aws-amplify.dev',
+                'http://localhost:3000'
+            ],
+            logoutUrls: [
+                'https://multitenants.aws-amplify.dev',
+                'http://localhost:3000'
+            ]
         },
         userPoolClientName: 'hostedUIClient'
     });
@@ -43,7 +53,10 @@ export const addAdminAppClient = (scope: Construct, userpool: UserPool) => {
 };
 
 export const createUserPool = (scope: Construct, stageName: string) => {
-    return new UserPool(scope, `multitenant-${stageName}`, {
+
+    const postconfirmLambda = createPostConfirmLambda(scope);
+
+    const userpool = new UserPool(scope, `multitenant-${stageName}`, {
         userPoolName: `multitenant-${stageName}`,
         // other option would be { email: true, phone: false }
         signInAliases: {
@@ -69,8 +82,31 @@ export const createUserPool = (scope: Construct, stageName: string) => {
         // MFA optional
         mfa: Mfa.OPTIONAL,
         // forgotPassword recovery method, phone by default
-        accountRecovery: AccountRecovery.EMAIL_ONLY
+        accountRecovery: AccountRecovery.EMAIL_ONLY,
+        lambdaTriggers: {
+            postConfirmation: postconfirmLambda
+        }
     });
+
+
+    postconfirmLambda.role?.attachInlinePolicy(
+        new Policy(scope, `mt-postconfirm-lambda-policy`, {
+            statements: [
+                new PolicyStatement({
+                    actions: [
+                        'cognito-idp:AdminListGroupsForUser',
+                        'cognito-idp:AdminGetUser',
+                        'cognito-idp:AdminRemoveUserFromGroup',
+                        'cognito-idp:AdminAddUserToGroup'
+                    ],
+                    resources: [userpool.userPoolArn]
+                }),
+                getBasicLambdaPolicy()                
+            ]
+        })
+    );
+
+    return userpool;
 };
 
 export const addUserpoolDomain = (
