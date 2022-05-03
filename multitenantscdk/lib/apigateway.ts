@@ -18,20 +18,22 @@ import {
 
 import {Construct} from 'constructs';
 
+const defaultCorsPreflightOptions = {
+    allowHeaders: ['Content-Type', 'X-Amz-Date', 'Authorization'],
+    allowMethods: ['OPTIONS', 'GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+    allowCredentials: true,
+    allowOrigins: ['*']
+};
+
 // create APIGateway
 export const createApiGateway = (scope: Construct, stageName: string) => {
     return new RestApi(scope, 'multitenants', {
         description: 'api gateway for multitenants',
         deployOptions: {
-            stageName,
+            stageName
         },
         // 👇 enable CORS
-        defaultCorsPreflightOptions: {
-            allowHeaders: ['Content-Type', 'X-Amz-Date', 'Authorization'],
-            allowMethods: ['OPTIONS', 'GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
-            allowCredentials: true,
-            allowOrigins: ['*']
-        }
+        defaultCorsPreflightOptions
     });
 };
 
@@ -63,8 +65,14 @@ const addCRUDApiServices = (
     );
 
     // 👇 add a /tenants/{id} resource
-    const rootpathApi = api.root.addResource(`${type}`);
-    const subpathApi = rootpathApi.addResource('{id}');
+    const rootpathApi = api.root.addResource(`${type}`, {
+        // 👇 enable CORS
+        defaultCorsPreflightOptions
+    });
+    const subpathApi = rootpathApi.addResource('{id}', {
+        // 👇 enable CORS
+        defaultCorsPreflightOptions
+    });
 
     rootpathApi.addMethod(
         'GET',
