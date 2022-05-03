@@ -3,6 +3,9 @@ import {Amplify, Auth, Hub} from 'aws-amplify';
 import axios from 'axios';
 import {Buffer} from 'buffer';
 
+import CreateTenant from './Components/CreateTenant';
+import Tenants from './Components/Tenants';
+
 Amplify.configure({
     Auth: {
         region: 'us-east-1',
@@ -49,7 +52,6 @@ function App() {
                 Authorization: data.signInUserSession.idToken.jwtToken
             }
         });
-        
         setTenants(tenantResponse.data);
 
         const idpResponse = await axios.get(Endpoint + '/idps', {
@@ -107,16 +109,7 @@ function App() {
                     <pre>Auth.updateUserAttribute()</pre>
                 </div>
             )}
-            {user && tenants && tenants.length && (
-                <div>
-                    <p> Tenants</p>
-                    <ol>
-                        {tenants.map((tenant) => (
-                            <li key={tenant.GroupName}>{tenant.GroupName}</li>
-                        ))}
-                    </ol>
-                </div>
-            )}
+            {user  && <Tenants data={tenants} />}
             {user && idps && idps.length && (
                 <div>
                     <p> Idps</p>
@@ -127,6 +120,7 @@ function App() {
                     </ol>
                 </div>
             )}
+            {user && <CreateTenant url={Endpoint}/>}
         </div>
     );
 }
