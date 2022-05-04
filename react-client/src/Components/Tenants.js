@@ -1,13 +1,15 @@
 import React from 'react';
 
-function Tenants(tenants) {
+function Tenants(props) {
+	const {data} = props;
+	console.log ('tenants in:', data);
     return (
-        tenants &&
-        Array.isArray(tenants) && (
+        data &&
+        Array.isArray(data) && (
             <div>
                 <p> Tenants</p>
                 <ul>
-                    {tenants.map((tenant) => (
+                    {data.map((tenant) => (
                         <li key={tenant.GroupName}>{tenant.GroupName}</li>
                     ))}
                 </ul>

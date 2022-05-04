@@ -7,7 +7,7 @@ function CreateTenant({url}) {
 
     const handleTenantChange = useCallback((event) => {
         formDatas[event.target.name] = event.target.value;
-    }, []);
+    }, [formDatas]);
 
     const handleTenantSubmit = (event) => {
         event.preventDefault();
@@ -33,7 +33,7 @@ function CreateTenant({url}) {
         } catch (err) {
             console.error('create tenant error.', err);
         }
-    }, []);
+    }, [url, formDatas]);
 
     return (
         <div>
