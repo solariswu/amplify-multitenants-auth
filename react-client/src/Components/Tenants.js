@@ -1,16 +1,37 @@
 import React from 'react';
+import {Auth} from 'aws-amplify';
+import axios from 'axios';
 
 function Tenants(props) {
-	const {data} = props;
-	console.log ('tenants in:', data);
+	const {tenants, url, updateTenants} = props;
+
+    const deleteTenant = async (tenantId) => {
+        try {
+            const session = await Auth.currentSession();
+            await axios.delete(
+                `${url}/tenants/${tenantId}`,
+                {
+                    headers: {
+                        Authorization: session.getIdToken().getJwtToken()
+                    }
+                }
+            );
+            updateTenants();
+        }
+        catch (err) {
+            console.error ('delete tenant error:', err);
+        }
+    }
+
     return (
-        data &&
-        Array.isArray(data) && (
+        tenants &&
+        Array.isArray(tenants) && (
             <div>
                 <p> Tenants</p>
                 <ul>
-                    {data.map((tenant) => (
-                        <li key={tenant.GroupName}>{tenant.GroupName}</li>
+                    {tenants.map((tenant) => (
+                        <li key={tenant.GroupName}>{tenant.GroupName}
+                        <button name='btnDeleteTenant' onClick={() => deleteTenant(tenant.GroupName)}>delete</button></li>
                     ))}
                 </ul>
             </div>

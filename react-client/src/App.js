@@ -42,28 +42,33 @@ function App() {
     const [tenants, setTenants] = useState(null);
     const [idps, setIdps] = useState(null);
 
-    const updateStats = async (data) => {
-        // setIdToken(data.signInUserSession.idToken.jwtToken);
-        // setAccessToken(data.signInUserSession.accessToken.jwtToken);
-        setUser(decodeToken(data.signInUserSession.idToken.jwtToken));
-
+    const updateTenants = async () => {
+        const session = await Auth.currentSession();
         const tenantResponse = await axios.get(Endpoint + '/tenants', {
             headers: {
-                Authorization: data.signInUserSession.idToken.jwtToken
+                Authorization: session.idToken.jwtToken
             }
         });
         setTenants(tenantResponse.data);
-
-        const idpResponse = await axios.get(Endpoint + '/idps', {
-            headers: {
-                Authorization: data.signInUserSession.idToken.jwtToken
-            }
-        });
-
-        setIdps(idpResponse.data);
-    };
+    }
 
     useEffect(() => {
+        const updateStats = async (data) => {
+            // setIdToken(data.signInUserSession.idToken.jwtToken);
+            // setAccessToken(data.signInUserSession.accessToken.jwtToken);
+            setUser(decodeToken(data.signInUserSession.idToken.jwtToken));
+    
+            updateTenants();
+    
+            const idpResponse = await axios.get(Endpoint + '/idps', {
+                headers: {
+                    Authorization: data.signInUserSession.idToken.jwtToken
+                }
+            });
+    
+            setIdps(idpResponse.data);
+        };
+
         const unsubscribe = Hub.listen('auth', ({payload: {event, data}}) => {
             switch (event) {
                 case 'signIn':
@@ -109,7 +114,7 @@ function App() {
                     <pre>Auth.updateUserAttribute()</pre>
                 </div>
             )}
-            {user  && <Tenants data={tenants} />}
+            {user  && <Tenants tenants={tenants} url={Endpoint} updateTenants={updateTenants} />}
             {user && idps && idps.length && (
                 <div>
                     <p> Idps</p>
@@ -120,7 +125,7 @@ function App() {
                     </ol>
                 </div>
             )}
-            {user && <CreateTenant url={Endpoint}/>}
+            {user && <CreateTenant url={Endpoint} updateTenants={updateTenants}/>}
         </div>
     );
 }

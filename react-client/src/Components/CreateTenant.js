@@ -2,7 +2,7 @@ import React, {useRef, useCallback} from 'react';
 import {Auth} from 'aws-amplify';
 import axios from 'axios';
 
-function CreateTenant({url}) {
+function CreateTenant({url, updateTenants}) {
     const {current: formDatas} = useRef({});
 
     const handleTenantChange = useCallback((event) => {
@@ -17,7 +17,7 @@ function CreateTenant({url}) {
         try {
             const session = await Auth.currentSession();
             const idToken = session.getIdToken().getJwtToken();
-            const createtenantResponse = await axios.post(
+            await axios.post(
                 `${url}/tenants/${formDatas['tenantid']}`,
                 {
                     description: formDatas['description']
@@ -29,16 +29,17 @@ function CreateTenant({url}) {
                 }
             );
 
-            console.log(createtenantResponse.data);
+            updateTenants();
+            
         } catch (err) {
             console.error('create tenant error.', err);
         }
-    }, [url, formDatas]);
+    }, [url, formDatas, updateTenants]);
 
     return (
         <div>
+            <div>Create New Tenant</div>
             <form onChange={handleTenantChange} onSubmit={handleTenantSubmit}>
-                <label>create new tenant</label>
                 <label>
                     tenant id:
                     <input name='tenantid' type='text' />
