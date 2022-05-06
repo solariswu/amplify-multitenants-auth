@@ -82,8 +82,6 @@ function App() {
                 }
             });
 
-            console.log('usersResponse:', usersResponse);
-
             setUsers(usersResponse.data.Users);
         };
 

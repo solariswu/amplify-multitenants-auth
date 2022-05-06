@@ -28,7 +28,6 @@ function Users(props) {
 					}
 				}
             );
-            console.log('filtered user:', user);
         });
     }
 
