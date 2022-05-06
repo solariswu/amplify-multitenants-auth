@@ -90,7 +90,7 @@ const getAllTenants = async () => {
             };
         }
     } while (listGroupsParams.NextToken);
-    const body = JSON.stringify(tenants);
+    const body = JSON.stringify({Tenants: tenants});
 
     return {
         statusCode: 200,
@@ -136,7 +136,7 @@ const getTenant = async (tenantId) => {
         };
     }
 
-    const body = JSON.stringify(tenants);
+    const body = JSON.stringify({Tenants: tenants});
 
     return {
         statusCode: 200,

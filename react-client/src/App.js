@@ -5,6 +5,7 @@ import {Buffer} from 'buffer';
 
 import CreateTenant from './Components/CreateTenant';
 import Tenants from './Components/Tenants';
+import Users from './Components/Users';
 
 Amplify.configure({
     Auth: {
@@ -36,10 +37,13 @@ function decodeToken(token) {
 }
 
 function App() {
-    // const [idToken, setIdToken] = useState(null);
-    // const [accessToken, setAccessToken] = useState(null);
+    // current user
     const [user, setUser] = useState(null);
+    // all users in the pool
+    const [users, setUsers] = useState(null);
+    // tenants
     const [tenants, setTenants] = useState(null);
+    // idps
     const [idps, setIdps] = useState(null);
 
     const updateTenants = async () => {
@@ -49,24 +53,38 @@ function App() {
                 Authorization: session.idToken.jwtToken
             }
         });
-        setTenants(tenantResponse.data);
-    }
+        setTenants(tenantResponse.data.Tenants);
+    };
+
+    const removeUser = (username) => {
+        if (users && users.length > 0) {
+            setUsers(users.filter((user) => user.Attributes['email'] !== username));
+        }
+    };
 
     useEffect(() => {
         const updateStats = async (data) => {
-            // setIdToken(data.signInUserSession.idToken.jwtToken);
-            // setAccessToken(data.signInUserSession.accessToken.jwtToken);
             setUser(decodeToken(data.signInUserSession.idToken.jwtToken));
-    
+
             updateTenants();
-    
+
             const idpResponse = await axios.get(Endpoint + '/idps', {
                 headers: {
                     Authorization: data.signInUserSession.idToken.jwtToken
                 }
             });
-    
-            setIdps(idpResponse.data);
+
+            setIdps(idpResponse.data.Idps);
+
+            const usersResponse = await axios.get(Endpoint + '/users', {
+                headers: {
+                    Authorization: data.signInUserSession.idToken.jwtToken
+                }
+            });
+
+            console.log('usersResponse:', usersResponse);
+
+            setUsers(usersResponse.data.Users);
         };
 
         const unsubscribe = Hub.listen('auth', ({payload: {event, data}}) => {
@@ -114,7 +132,13 @@ function App() {
                     <pre>Auth.updateUserAttribute()</pre>
                 </div>
             )}
-            {user  && <Tenants tenants={tenants} url={Endpoint} updateTenants={updateTenants} />}
+            {user && (
+                <Tenants
+                    tenants={tenants}
+                    url={Endpoint}
+                    updateTenants={updateTenants}
+                />
+            )}
             {user && idps && idps.length && (
                 <div>
                     <p> Idps</p>
@@ -125,7 +149,12 @@ function App() {
                     </ol>
                 </div>
             )}
-            {user && <CreateTenant url={Endpoint} updateTenants={updateTenants}/>}
+            {user && (
+                <CreateTenant url={Endpoint} updateTenants={updateTenants} />
+            )}
+            {user && (
+                <Users users={users} url={Endpoint} removeUser={removeUser} />
+            )}
         </div>
     );
 }

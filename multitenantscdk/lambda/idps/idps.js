@@ -236,9 +236,9 @@ const getIdp = async (tenantId, idpName) => {
         console.error('Get identity provider failed with:', err);
         console.error('RequestId: ' + err.requestId);
         return response(err.statusCode, JSON.stringify({message: err.code}));
-    }
 
-    return response(200, JSON.stringify(idps));
+    }
+    return response(200, JSON.stringify({Idps: idps}));
 };
 
 const getAllIdps = async () => {
@@ -269,7 +269,7 @@ const getAllIdps = async () => {
         }
     } while (listIdentityProvidersParams.NextToken);
 
-    return response(200, JSON.stringify(idps));
+    return response(200, JSON.stringify({Idps: idps}));
 };
 
 const getIdpsByTenantId = async (tenantId) => {
@@ -301,7 +301,7 @@ const getIdpsByTenantId = async (tenantId) => {
             idp.name.substring(0, idp.name.indexOf('-') === tenantId)
         )
     );
-    return response(200, JSON.stringify(idps));
+    return response(200, JSON.stringify({Idps: body}));
 };
 
 exports.main = async (event) => {
