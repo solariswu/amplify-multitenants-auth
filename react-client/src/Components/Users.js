@@ -26,8 +26,10 @@ function Users(props) {
 					if (attribute.Name === 'email') {
 						user.Email = attribute.Value;
 					}
+                    return attribute;
 				}
             );
+            return user;
         });
     }
 
