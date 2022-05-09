@@ -6,6 +6,7 @@ import {Buffer} from 'buffer';
 import CreateTenant from './Components/CreateTenant';
 import Tenants from './Components/Tenants';
 import Users from './Components/Users';
+import CreateUser from './Components/CreateUser';
 
 Amplify.configure({
     Auth: {
@@ -54,6 +55,16 @@ function App() {
             }
         });
         setTenants(tenantResponse.data.Tenants);
+    };
+
+    const updateUsers = async () => {
+        const session = await Auth.currentSession();
+        const usersResponse = await axios.get(Endpoint + '/users', {
+            headers: {
+                Authorization: session.idToken.jwtToken
+            }
+        });
+        setUsers(usersResponse.data.Users);
     };
 
     const removeUser = (username) => {
@@ -152,6 +163,9 @@ function App() {
             )}
             {user && (
                 <Users users={users} url={Endpoint} removeUser={removeUser} />
+            )}
+            {user && (
+                <CreateUser url={Endpoint} tenants={tenants} updateUsers={updateUsers} />
             )}
         </div>
     );

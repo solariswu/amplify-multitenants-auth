@@ -5,9 +5,12 @@ import axios from 'axios';
 function CreateTenant({url, updateTenants}) {
     const {current: formDatas} = useRef({});
 
-    const handleTenantChange = useCallback((event) => {
-        formDatas[event.target.name] = event.target.value;
-    }, [formDatas]);
+    const handleTenantChange = useCallback(
+        (event) => {
+            formDatas[event.target.name] = event.target.value;
+        },
+        [formDatas]
+    );
 
     const handleTenantSubmit = (event) => {
         event.preventDefault();
@@ -15,8 +18,6 @@ function CreateTenant({url, updateTenants}) {
 
     const createTenant = useCallback(async () => {
         try {
-            const session = await Auth.currentSession();
-            const idToken = session.getIdToken().getJwtToken();
             await axios.post(
                 `${url}/tenants/${formDatas['tenantid']}`,
                 {
@@ -24,13 +25,14 @@ function CreateTenant({url, updateTenants}) {
                 },
                 {
                     headers: {
-                        Authorization: idToken
+                        Authorization: (await Auth.currentSession())
+                            .getIdToken()
+                            .getJwtToken()
                     }
                 }
             );
 
             updateTenants();
-            
         } catch (err) {
             console.error('create tenant error.', err);
         }
@@ -49,7 +51,7 @@ function CreateTenant({url, updateTenants}) {
                     <input name='description' type='text' />
                 </label>
 
-                <input type='submit' value='submit' onClick={createTenant} />
+                <input type='submit' value='create tenant' onClick={createTenant} />
             </form>
         </div>
     );
