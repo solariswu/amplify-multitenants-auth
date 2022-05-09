@@ -1,4 +1,4 @@
-import React, {useRef, useCallback, useLayoutEffect} from 'react';
+import React, {useRef, useCallback} from 'react';
 import {Auth} from 'aws-amplify';
 import axios from 'axios';
 
