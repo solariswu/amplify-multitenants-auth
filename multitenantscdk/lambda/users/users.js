@@ -48,17 +48,6 @@ const INVAID_PARAMS = {
     body: JSON.stringify({message: 'Invalid Input Parameters'})
 };
 
-const isInputValid = (payload) => {
-    console.log('createUser received payload:', payload);
-    return (
-        payload &&
-        payload.tenantid &&
-        payload.email &&
-        payload.tenantid.trim().length &&
-        payload.email.trim().length
-    );
-};
-
 const retrieveRequesterGroup = (requestContext) => {
     const groups = [];
     if (
@@ -165,15 +154,9 @@ const createUser = async (
     requesterTenantId = null,
     payload = null
 ) => {
-    let UserEmail = null;
-
-    if (!isInputValid(payload)) {
-        return INVAID_PARAMS;
-    }
-
     // Benefit Admin create user, needs tenant id info
-    if (!payload.tenantid && !tenantId) {
-        return response(400, 'Need tenant id in payload');
+    if (!requesterTenantId && (!payload || !payload.tenantid)) {
+        return response(400, JSON.stringify({message: 'Need tenant id in payload'}));
     }
 
     // requester tenant id equals
@@ -185,17 +168,13 @@ const createUser = async (
         return PERMISSION_DENY;
     }
 
-    if (payload.email) {
-        UserEmail = payload.email;
-    }
-
     const createUserParams = {
         UserPoolId,
         Username,
         UserAttributes: [
             {
                 Name: 'email',
-                Value: UserEmail
+                Value: Username
             }
         ]
     };
@@ -443,6 +422,14 @@ exports.main = async (event) => {
                 } catch (err) {
                     return INVAID_PARAMS;
                 }
+            }
+
+            // email regex test against username
+            let ePattern =
+                /^([A-Za-z0-9_\-\.])+\@([A-Za-z0-9_\-\.])+\.([A-Za-z]{2,4})$/;
+
+            if (!ePattern.test(username)) {
+                return INVAID_PARAMS;
             }
 
             return createUser(username, requesterTenantId, payload);
